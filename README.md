@@ -18,22 +18,22 @@ with both sides alucinating. The solution is to design an genetic algorithm wich
 There is an score assigned to each edge of the graph, whose can be unidiretional (implication: $\Rightarrow$) or bidiretional (equality: $\Leftrightarrow$), and it will lead the search for a solution of the
 original problem.
 
-A problem or question can be described as two contradicting propositions: one must be true, while other false; if we find an inconsistency on
-the first affirmative, the second affirmative will be true, and virse-versa. As well as, if an affirmative is proven true, the other is false.
+A problem or question can be described as two contradicting propositions: one must be true, while other false; if we find an inconsistency on the first affirmative, the second affirmative will be true, and virse-versa. As well as, if an affirmative is proven true, the other is false.
+
 Of course, consistency is not everything, as the Gödel Incompleteness states, but if there is an cicle where all nodes are true, and the last one on the starting node
 then this node is also true. Mathematically speaking:
 
 $$x \rightarrow y \wedge y \rightarrow z$$
+
 $$z \rightarrow x$$
 
 By transitive rule, we can affirm that $x \leftrightarrow z$ (though $x \rightarrow z$ and $z \rightarrow x$)
 wich means that if z is true, x is also.
 
-The system will use this thought to eliminate inconsistent cicles and reinforce the accuracy of the system. It will also use an global optimizer
-(the genetic algorithm I spoke before), and construct graphs for this schedule, crossing then over for better nodes.
+The system will use this thought to eliminate inconsistent cicles and reinforce the accuracy of the system. It will also use an global optimizer (the genetic algorithm I spoke before), and construct graphs for this schedule, crossing then over for better nodes.
 
 ## Routes
 For this project, the designed routes and specific request methods are:
-. /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
-. /nodes [POST, GET] => POST to add a node and GET to retrieve all
-. /nodes/<int:id> [GET] => To retrieve a specific node
+* /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
+*  /nodes [POST, GET] => POST to add a node and GET to retrieve all
+*   /nodes/<int:id> [GET] => To retrieve a specific node

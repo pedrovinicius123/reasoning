@@ -1,6 +1,7 @@
 from .extensions import db, migrate, m
 from .utils.response import error_response
 from .routes.nodes import bp_nodes
+from .routes.agents import bp_agents
 from werkzeug.exceptions import NotFound
 from marshmallow import ValidationError
 from flask import Flask
@@ -16,6 +17,9 @@ def create_app():
     migrate.init_app(app, db)
     m.init_app(app)
 
+    with app.app_context():
+        db.create_all()
+
     #Error handlers
     @app.errorhandler(NotFound)
     def not_found(err):
@@ -27,4 +31,5 @@ def create_app():
     
     # Adding blueprints 
     app.register_blueprint(bp_nodes)
+    app.register_blueprint(bp_agents)
     return app

@@ -1,7 +1,10 @@
 from ..extensions import db
+from .graph import Graph
 
 class Edge(db.Model):
     __tablename__ = 'edges'
+    id = db.Column(db.Integer, primary_key=True)
+    graph_id = db.Column(db.Integer, db.ForeignKey('graph.id'), primary_key=True)
     parent_id = db.Column(db.Integer, db.ForeignKey('nodes.id'), primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('nodes.id'), primary_key=True)
     

@@ -1,5 +1,7 @@
-from ..schemas.nodes_schema import NodeSchema, Node
-from ..schemas.edges_schema import EdgeSchema, Edge
+from ..schemas.nodes_schema import NodeSchema
+from ..schemas.edges_schema import EdgeSchema
+from ..models.node import Node
+from ..models.edges import Edge
 from ..utils.networkx_parser import NetworkxParser
 from ..utils.response import successful_response
 from ..extensions import db
@@ -7,7 +9,6 @@ from marshmallow import ValidationError
 from werkzeug.exceptions import NotFound
 from flask import request
 
-networkx_schema = NetworkxParser()
 node_schema = NodeSchema()
 edge_schema = EdgeSchema()
 
@@ -15,20 +16,28 @@ nodes_schema = NodeSchema(many=True)
 edges_schema = EdgeSchema(many=True)
 
 def list_all_nodes():
-    nodes = Node.query.all()
+    id = request.args.get("id", type=int)
+    if id is None:
+        raise ValidationError("graph id is required")
+
+    nodes = Node.query.filter_by(graph_id=id).all()
     if not nodes:
-        raise NotFound("Node db is empty")
-    
+        raise NotFound("Node db is empty for this graph id")
+
     return successful_response(nodes_schema.dump(nodes))
 
 def list_all_edges():
-    edges = Edge.query.all()
+    id = request.args.get("id", type=int)
+    if id is None:
+        raise ValidationError("graph id is required")
+
+    edges = Edge.query.filter_by(graph_id=id).all()
     if not edges:
         raise NotFound("There are no edges")
-    
+
     return successful_response(edges_schema.dump(edges))
 
-def get_nid(id:int):
+def get_nid(id):
     node = Node.query.get_or_404(id)
     return successful_response(node_schema.dump(node))
 
@@ -61,6 +70,7 @@ def add_edge():
 def add_node():
     data = request.json
     node = node_schema.load(data)
+    print(node.id)
 
     db.session.add(node)
     db.session.commit()       

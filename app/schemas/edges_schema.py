@@ -6,6 +6,7 @@ class EdgeSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Edge
         load_instance = True
+        include_fk=True
 
     penalty = auto_field()
     relation = auto_field()

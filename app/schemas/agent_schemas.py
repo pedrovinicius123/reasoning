@@ -1,20 +1,21 @@
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import List, Literal, Tuple
 
 class Connection(BaseModel):
-    a:int
-    b:int
-    confiability:float = Field(ge=.0, le=1.0)
+    a:Node
+    b:Node
+    penalty:float = Field(ge=.0, le=1.0)
     relation:Literal['uni', 'bi']
 
 class Node(BaseModel):
     id:int
     label:str
     desc:str
-    confiability:float = Field(ge=.0, le=1.0)
+    penalty:float = Field(ge=.0, le=1.0)
+    conns:List[Connection]
 
 class Output(BaseModel):
-    conns:List[Connection]
+    connections:List[Connection]
 
 class Changes(BaseModel):
     new_nodes:List[Node]

@@ -12,7 +12,7 @@ m = Marshmallow()
 load_dotenv()
 
 client = Client(
-    "https://ollama.com/api",
+    "https://ollama.com",
     headers={
         "authorization": f"Bearer {os.getenv("OLLAMA_API_KEY")}"
     }

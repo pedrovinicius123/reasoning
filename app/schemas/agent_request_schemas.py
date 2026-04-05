@@ -3,7 +3,7 @@ from marshmallow import fields
 
 class JsonRequestAgentSchemaCreative(m.Schema):
     id=fields.Int(required=True)
-    relation=fields.Str(required=True)
+    new_nodes=fields.Int(required=True)
 
 
 class JsonRequestAgentSchemaCritic(m.Schema):

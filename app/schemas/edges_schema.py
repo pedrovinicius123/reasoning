@@ -8,6 +8,9 @@ class EdgeSchema(SQLAlchemyAutoSchema):
         load_instance = True
         include_fk=True
 
+    id = auto_field(dump_only=True)
+    graph_id = auto_field()
+
     penalty = auto_field()
     relation = auto_field()
 

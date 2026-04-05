@@ -4,7 +4,7 @@ from networkx import DiGraph
 def edges_mean(graph):
     return sum([edge["confiability"] for edge in graph.edges()])/len(graph.edges())
 
-def crossing_over_and_selection(*graphs, threshold=.6):
+def crossing_over_and_selection(*graphs, threshold=.2):
     pairs = combinations(graphs)
     new_gs = []
 

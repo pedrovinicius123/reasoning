@@ -21,6 +21,9 @@ def list_all_nodes():
         raise ValidationError("graph id is required")
 
     nodes = Node.query.filter_by(graph_id=id).all()
+    for node in nodes:
+        print(node.label)
+        print(node.desc)
     if not nodes:
         raise NotFound("Node db is empty for this graph id")
 
@@ -45,8 +48,9 @@ def add_edge():
     data = request.json
     edge = data.get("edge", False)
     relation_type = data.get("relation")
+    graph_id = data.get("graph_id", False)
 
-    if edge:
+    if edge and graph_id and relation_type in ["uni", "bi"]:
         p, c = set(edge)
         parent = Node.query.get_or_404(p)
         child = Node.query.get_or_404(c)
@@ -54,13 +58,18 @@ def add_edge():
         if p == c:
             raise ValidationError("Node auto-referencing")
         
-        edge = Edge(parent=parent, child=child, relation=relation_type, penalty=.5)
-        corr = Edge.query.filter_by(parent=parent, child=child).first()
+        # Get next edge id
+        max_edge_id = db.session.query(db.func.max(Edge.id)).scalar() or 0
+        edge_id = max_edge_id + 1
+        
+        edge = Edge(id=edge_id, parent=parent, child=child, relation=relation_type, graph_id=graph_id, penalty=.5)
+        corr = Edge.query.filter_by(graph_id=graph_id, parent=parent, child=child).first()
         if not corr:
             db.session.add(edge)
 
         else:
-            corr.relation = relation_type        
+            corr.relation = relation_type
+            db.session.merge(corr)        
         db.session.commit()
     
     else:
@@ -70,9 +79,8 @@ def add_edge():
 def add_node():
     data = request.json
     node = node_schema.load(data)
-    print(node.id)
 
     db.session.add(node)
     db.session.commit()       
 
-    return successful_response("Node created", 201)     
+    return successful_response(node_schema.dump(node), 201)     

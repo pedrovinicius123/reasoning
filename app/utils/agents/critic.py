@@ -11,13 +11,17 @@ class CriticAgent(Agent):
         prompt = f"""
 Analyze the graph bellow and show any issues within the knownledge contained on it.
 Propose changes on the nodes and, if necessary, remove nodes, and connections from the knownledge graph.
+!IMPORTANT! Return only JSON with the format specified, without any additional text or explanation outside the JSON.
+
+Follow the format bellow strictly:
+{Changes.model_json_schema()}
+
 """
         self.build_graph(graph_id)
         prompt += self.prompt_graph()
         response = Changes.model_validate_json(client.chat(
             model=self.model,
             messages=[{"role":"user", "content": prompt}],
-            format=Changes.model_json_schema(),
             options = {
                 "temperature":.0
             }

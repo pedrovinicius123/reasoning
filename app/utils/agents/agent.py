@@ -18,14 +18,15 @@ class Agent:
 
     def prompt_graph(self):
         prompt = "Edges:\n\n"
-        for edge in self.graph.edges():
+        for edge in self.parser.graph.edges():
             a, b = edge
             prompt += f"{a} -> {b}\n"
 
-        prompt = "\nNodes:\n"
-        for node in self.graph.nodes():
-            n = self.node_schema.load(Node.query.get(node))
-            prompt += f"{n}\n"
+        prompt += "\nNodes:\n"
+        for node in self.parser.graph.nodes():
+            prompt += f"{node}\n"
+            prompt += f"Label: {self.parser.graph.nodes[node]['label']}\n"
+            prompt += f"Description: {self.parser.graph.nodes[node]['desc']}\n\n"
 
         return prompt
 

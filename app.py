@@ -1,5 +1,8 @@
 from app import create_app
-from app.models.node import Node
-from app.models.edges import Edge
+from app.utils.networkx_parser import NetworkxParserManger
 
 app = create_app()
+if __name__ == "__main__":
+    with app.app_context():
+        manager = NetworkxParserManger()
+        manager.dump_best()

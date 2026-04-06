@@ -5,7 +5,7 @@ from ..models.edges import Edge
 from ..utils.networkx_parser import NetworkxParser
 from ..utils.response import successful_response
 from ..extensions import db
-from marshmallow import ValidationError
+from werkzeug.exceptions import BadRequest
 from werkzeug.exceptions import NotFound
 from flask import request
 
@@ -18,12 +18,9 @@ edges_schema = EdgeSchema(many=True)
 def list_all_nodes():
     id = request.args.get("id", type=int)
     if id is None:
-        raise ValidationError("graph id is required")
+        raise BadRequest("graph id is required")
 
     nodes = Node.query.filter_by(graph_id=id).all()
-    for node in nodes:
-        print(node.label)
-        print(node.desc)
     if not nodes:
         raise NotFound("Node db is empty for this graph id")
 
@@ -32,7 +29,7 @@ def list_all_nodes():
 def list_all_edges():
     id = request.args.get("id", type=int)
     if id is None:
-        raise ValidationError("graph id is required")
+        raise BadRequest("graph id is required")
 
     edges = Edge.query.filter_by(graph_id=id).all()
     if not edges:
@@ -46,34 +43,53 @@ def get_nid(id):
 
 def add_edge():
     data = request.json
-    edge = data.get("edge", False)
+    edge = data.get("edge")
     relation_type = data.get("relation")
-    graph_id = data.get("graph_id", False)
+    graph_id = data.get("graph_id")
 
-    if edge and graph_id and relation_type in ["uni", "bi"]:
-        p, c = set(edge)
-        parent = Node.query.get_or_404(p)
-        child = Node.query.get_or_404(c)
+    if not isinstance(edge, (list, tuple)) or len(edge) != 2:
+        raise BadRequest("edge must be a list or tuple of two node ids")
 
-        if p == c:
-            raise ValidationError("Node auto-referencing")
+    try:
+        p, c = int(edge[0]), int(edge[1])
+    except (TypeError, ValueError):
+        raise BadRequest("edge node ids must be integers")
+
+    try:
+        graph_id = int(graph_id)
+    except (TypeError, ValueError):
+        raise BadRequest("graph_id must be an integer")
+
+    if relation_type not in ["uni", "bi"]:
+        raise BadRequest("relation must be 'uni' or 'bi'")
+
+    parent = Node.query.get_or_404(p)
+    child = Node.query.get_or_404(c)
+
+    if parent.graph_id != graph_id or child.graph_id != graph_id:
+        raise BadRequest("Both nodes must belong to the specified graph")
+
+    if p == c:
+        raise BadRequest("Node auto-referencing")
         
-        # Get next edge id
-        max_edge_id = db.session.query(db.func.max(Edge.id)).scalar() or 0
-        edge_id = max_edge_id + 1
-        
-        edge = Edge(id=edge_id, parent=parent, child=child, relation=relation_type, graph_id=graph_id, penalty=.5)
-        corr = Edge.query.filter_by(graph_id=graph_id, parent=parent, child=child).first()
-        if not corr:
-            db.session.add(edge)
-
-        else:
-            corr.relation = relation_type
-            db.session.merge(corr)        
-        db.session.commit()
-    
+    # Check if edge already exists
+    existing_edge = Edge.query.filter_by(graph_id=graph_id, parent_id=p, child_id=c).first()
+    if existing_edge:
+        existing_edge.relation = relation_type
     else:
-        raise ValidationError("Invalid format")
+        new_edge = Edge(parent=parent, child=child, relation=relation_type, graph_id=graph_id, penalty=.5)
+        db.session.add(new_edge)
+        
+    # For bidirectional, also add the reverse edge
+    if relation_type == "bi":
+        existing_reverse = Edge.query.filter_by(graph_id=graph_id, parent_id=c, child_id=p).first()
+        if existing_reverse:
+            existing_reverse.relation = relation_type
+        else:
+            reverse_edge = Edge(parent=child, child=parent, relation=relation_type, graph_id=graph_id, penalty=.5)
+            db.session.add(reverse_edge)
+        
+    db.session.commit()
     return successful_response("Edge created", 201)
 
 def add_node():

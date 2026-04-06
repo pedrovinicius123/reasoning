@@ -2,10 +2,10 @@ from pydantic import BaseModel, Field
 from typing import List, Literal, Tuple
 
 class Connection(BaseModel):
-    a:Node
-    b:Node
-    penalty:float = Field(ge=.0, le=1.0)
-    relation:Literal['uni', 'bi']
+    a: "Node"
+    b: "Node"
+    penalty: float = Field(ge=.0, le=1.0)
+    relation: Literal['uni', 'bi']
 
 class Node(BaseModel):
     id:int

@@ -1,5 +1,4 @@
 from ..extensions import db
-from .graph import Graph
 
 class Edge(db.Model):
     __tablename__ = 'edges'
@@ -17,3 +16,5 @@ class Edge(db.Model):
     child = db.relationship("Node", foreign_keys=[child_id], back_populates="parent_edges")
 
     __table_args__ = (db.UniqueConstraint('graph_id', 'parent_id', 'child_id', name='unique_edge'),)
+
+from .node import Node

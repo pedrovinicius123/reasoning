@@ -13,6 +13,7 @@ class NodeSchema(SQLAlchemyAutoSchema):
         include_fk = True
 
     id = auto_field(dump_only=True)
+    is_primary = auto_field()
     label = auto_field(validate=Length(min=16, max=128))
     desc = auto_field(validate=Length(min=128, max=1024))
 

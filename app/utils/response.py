@@ -10,7 +10,7 @@ error_response: err, status_code(401) => {"sucess": "false", "error_msg":err.__r
 
 def successful_response(data, status_code=200):
     return jsonify({
-        "sucess":True,
+        "success":True,
         "data":data,
         "status_code":status_code
     })

@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 from ...extensions import client, db
 from ...schemas.edges_schema import EdgeSchema
 from ...schemas.nodes_schema import NodeSchema, Node
 from ..networkx_parser import NetworkxParser
 
-class Agent:
+class Agent(ABC):
     def __init__(self):
         self.session = db.session
         self.edges_schema = EdgeSchema(many=True)
@@ -24,11 +25,13 @@ class Agent:
 
         prompt += "\nNodes:\n"
         for node in self.parser.graph.nodes():
-            prompt += f"{node}\n"
+            prompt += f"{node}:\n"
             prompt += f"Label: {self.parser.graph.nodes[node]['label']}\n"
-            prompt += f"Description: {self.parser.graph.nodes[node]['desc']}\n\n"
+            prompt += f"Description: {self.parser.graph.nodes[node]['desc']}\n"
+            prompt += f"Is Primary: {self.parser.graph.nodes[node].get('is_primary', False)}\n\n"
 
         return prompt
 
-    def interact(self):
+    @abstractmethod
+    def interact(self, graph_id, parser=None):
         pass

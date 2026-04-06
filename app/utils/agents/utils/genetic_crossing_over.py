@@ -2,15 +2,20 @@ from itertools import combinations
 from networkx import DiGraph
 
 def edges_mean(graph):
-    return sum([edge["confiability"] for edge in graph.edges()])/len(graph.edges())
+    if not graph.edges():
+        return 0
+    return sum([edge[2]["penalty"] for edge in graph.edges(data=True)])/len(graph.edges())
 
 def crossing_over_and_selection(*graphs, threshold=.2):
-    pairs = combinations(graphs)
+    pairs = combinations(graphs, 2)
     new_gs = []
 
     for a, b in pairs:
-        best_edges_a = [edge for edge in a.edges() if edge["confiability"] >= threshold]
-        best_edges_b = [edge for edge in b.edges() if edge["confiability"] >= threshold]
+        print(a.edges(data=True), b.edges(data=True))
+        best_edges_a = [edge for edge in a.edges(data=True) if edge[2]["penalty"] <= threshold]
+        best_edges_b = [edge for edge in b.edges(data=True) if edge[2]["penalty"] <= threshold]
+
+        print(best_edges_a, best_edges_b)
         
         g = DiGraph()
         g.add_edges_from(best_edges_a + best_edges_b)

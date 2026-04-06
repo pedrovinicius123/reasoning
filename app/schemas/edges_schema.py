@@ -10,6 +10,8 @@ class EdgeSchema(SQLAlchemyAutoSchema):
 
     id = auto_field(dump_only=True)
     graph_id = auto_field()
+    parent_id = auto_field()
+    child_id = auto_field()
 
     penalty = auto_field()
     relation = auto_field()

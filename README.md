@@ -34,6 +34,8 @@ The system will use this thought to eliminate inconsistent cicles and reinforce 
 
 ## Routes
 For this project, the designed routes and specific request methods are:
-* /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
+*  /agents [POST] => Creative generation
+*  /agents/reasoning [POST] => Starts reasoning process
+*  /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
 *  /nodes [POST, GET] => POST to add a node and GET to retrieve all
 *   /nodes/<int:id> [GET] => To retrieve a specific node

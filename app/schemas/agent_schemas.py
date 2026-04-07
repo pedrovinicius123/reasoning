@@ -19,7 +19,6 @@ class Output(BaseModel):
     connections:List[Connection]
 
 class Changes(BaseModel):
-    new_nodes:List[Node]
     new_conns:List[Connection]
 
     nodes_to_delete:List[Node]

@@ -15,4 +15,4 @@ load_dotenv()
 # Configure Ollama client.
 # The ollama client already reads OLLAMA_API_KEY from the environment,
 # so we only need to pass the host explicitly.
-client = Client(host=Config.OLLAMA_HOST, headers={"Authorization": f"Bearer {Config.OLLAMA_API_KEY}"})
+client = Client(host=Config.OLLAMA_HOST)

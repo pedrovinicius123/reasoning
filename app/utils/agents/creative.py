@@ -9,7 +9,7 @@ class CreativeAgent(Agent):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CREATIVE_MODEL)
 
-    def interact(self, graph_id, new_nodes):
+    def interact(self, graph, new_nodes):
         prompt = f"""
 Propose {new_nodes} new nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties
 in order to append new mathematical knowledge for this graph. Also, for each new node, propose connections with the existing nodes in the graph, with a label, description and confiability for each connection.
@@ -26,8 +26,7 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
 {Output.model_json_schema()}
 """
         print("Before bug")
-        self.build_graph(graph_id)
-        prompt += self.prompt_graph()
+        prompt += self.prompt_graph(graph)
         print("Prompt built, sending to model...")
         response = client.chat(
             model=self.model,
@@ -41,7 +40,7 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
             results = json.loads(response)
             print(results)
             # Validate against schema
-            return results, self.parser
+            return results
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON response from model: {response}") from e
         except Exception as e:

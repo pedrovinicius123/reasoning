@@ -13,20 +13,16 @@ class Agent(ABC):
         self.client = client
         self.model = "qwen3.5:397b-cloud"
 
-    def build_graph(self, graph_id:int):
-        self.parser = NetworkxParser(graph_id)
-        self.parser.load()
-
-    def prompt_graph(self):
+    def prompt_graph(self, graph):
         prompt = "Edges:\n\n"
-        for edge in self.parser.graph.edges():
+        for edge in graph.edges():
             a, b = edge
             prompt += f"{a} -> {b}\n"
 
         prompt += "\nNodes:\n"
-        for node in self.parser.graph.nodes():
+        for node in graph.nodes():
             try:
-                node_data = self.parser.graph.nodes[node]
+                node_data = graph.nodes[node]
                 print(f"Node {node} attributes: {node_data}")
                 label = node_data.get('label', '')
                 desc = node_data.get('desc', '')
@@ -38,8 +34,8 @@ class Agent(ABC):
                 prompt += f"Is Primary: {is_primary}\n\n"
             except Exception as e:
                 print(f"Error accessing node {node} data: {e}")
-                print(f"Node data type: {type(self.parser.graph.nodes[node])}")
-                print(f"Node data content: {self.parser.graph.nodes[node]}")
+                print(f"Node data type: {type(graph.nodes[node])}")
+                print(f"Node data content: {graph.nodes[node]}")
                 raise
 
         return prompt

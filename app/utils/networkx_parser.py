@@ -147,20 +147,22 @@ class NetworkxParser:
             raise e
 
 class NetworkxParserManger:
-    def __init__(self):
-        graphs = Graph.query.all()
+    def __init__(self, n_graphs):
+        graph = Graph.query.order_by(Graph.id.desc()).first()
+        self.graph_id = graph.id
         self.best = None
         self.parsers = []
-        for g in graphs:
-            _, parser = NetworkxParser(g.id).load()
+        for _ in range(n_graphs):
+            _, parser = NetworkxParser(self.graph_id).load()
             self.parsers.append(parser)
+        self.best = self.parsers[-1]
 
     def dump_best(self):
         graphs_with_edges = [copy.deepcopy(parser.graph) for parser in self.parsers if parser.graph.edges()]
         if not graphs_with_edges:
             return  # No graphs with edges to process
-        best = crossing_over_and_selection(*graphs_with_edges)
+        bst = crossing_over_and_selection(*graphs_with_edges)
         self.best = NetworkxParser(graph_id=1)
-        self.best.graph = best
+        self.best.graph = bst
         self.best.dump()  # Persist the best graph to graph_id=1 only
     

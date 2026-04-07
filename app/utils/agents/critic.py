@@ -9,12 +9,7 @@ class CriticAgent(Agent):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CRITIC_MODEL)
 
-    def interact(self, graph_id, parser=None):
-        if parser is not None:
-            self.parser = parser
-        else:
-            self.build_graph(graph_id)
-
+    def interact(self, graph):
         print("Starting critic analysis...")
         prompt = f"""
 Analyze the graph bellow and show any issues within the knownledge contained on it.
@@ -29,7 +24,7 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
 {Changes.model_json_schema()}
 
 """
-        prompt += self.prompt_graph()
+        prompt += self.prompt_graph(graph)
         response = client.chat(
             model=self.model,
             messages=[{"role":"user", "content": prompt}],
@@ -42,7 +37,7 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
         try:
             result = json.loads(response)
             print(result)
-            return result, self.parser
+            return result
         except json.JSONDecodeError as e:
             print("!!! Invalid JSON response from model:", response)
             raise ValueError(f"Invalid JSON response from model: {response}") from e

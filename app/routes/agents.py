@@ -1,6 +1,6 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, current_app
 from ..utils.response import successful_response, error_response
-from ..controllers.ai_agents import interact_with_graph, develop_graph
+from ..controllers.ai_agents import interact_with_graph, start_interact_with_graph_thread
 
 bp_agents = Blueprint("agents", __name__, url_prefix="/agents")
 
@@ -10,10 +10,5 @@ def start_creative_generation():
 
 @bp_agents.route("/reasoning", methods=["POST"])
 def reasoning():
-    try:
-        if not request.is_json:
-            return error_response("Request must be JSON", 400)
-        develop_graph()
-        return successful_response({"message": "Development started"}, 202)
-    except Exception as e:
-        return error_response(str(e), 500)
+    with current_app.app_context():
+        return start_interact_with_graph_thread()

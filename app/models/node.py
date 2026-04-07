@@ -7,7 +7,7 @@ class Node(db.Model):
     graph_id = db.Column(db.Integer, db.ForeignKey('graph.id'))
 
     label = db.Column(db.String(128), nullable=False)
-    desc = db.Column(db.String(1024), nullable=False)
+    desc = db.Column(db.Text, nullable=False)
 
     child_edges = db.relationship("Edge", foreign_keys="Edge.parent_id", back_populates="parent")
     parent_edges = db.relationship("Edge", foreign_keys="Edge.child_id", back_populates="child")

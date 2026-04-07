@@ -25,10 +25,22 @@ class Agent(ABC):
 
         prompt += "\nNodes:\n"
         for node in self.parser.graph.nodes():
-            prompt += f"{node}:\n"
-            prompt += f"Label: {self.parser.graph.nodes[node]['label']}\n"
-            prompt += f"Description: {self.parser.graph.nodes[node]['desc']}\n"
-            prompt += f"Is Primary: {self.parser.graph.nodes[node].get('is_primary', False)}\n\n"
+            try:
+                node_data = self.parser.graph.nodes[node]
+                print(f"Node {node} attributes: {node_data}")
+                label = node_data.get('label', '')
+                desc = node_data.get('desc', '')
+                is_primary = node_data.get('is_primary', False)
+                
+                prompt += f"{node}:\n"
+                prompt += f"Label: {label}\n"
+                prompt += f"Description: {desc}\n"
+                prompt += f"Is Primary: {is_primary}\n\n"
+            except Exception as e:
+                print(f"Error accessing node {node} data: {e}")
+                print(f"Node data type: {type(self.parser.graph.nodes[node])}")
+                print(f"Node data content: {self.parser.graph.nodes[node]}")
+                raise
 
         return prompt
 

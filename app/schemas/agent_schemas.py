@@ -4,6 +4,7 @@ from typing import List, Literal, Tuple
 class Connection(BaseModel):
     a: "Node"
     b: "Node"
+    desc: str
     penalty: float = Field(ge=.0, le=1.0)
     relation: Literal['uni', 'bi']
 

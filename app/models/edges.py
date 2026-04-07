@@ -10,6 +10,7 @@ class Edge(db.Model):
     # Metadado da aresta
     penalty = db.Column(db.Float, nullable=False) 
     relation = db.Column(db.String(100), nullable=False)
+    desc = db.Column(db.Text, nullable=True)
 
     # Relacionamentos para acessar os nós a partir da Edge
     parent = db.relationship("Node", foreign_keys=[parent_id], back_populates="child_edges")

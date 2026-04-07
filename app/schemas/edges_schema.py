@@ -15,6 +15,7 @@ class EdgeSchema(SQLAlchemyAutoSchema):
 
     penalty = auto_field()
     relation = auto_field()
+    desc = auto_field()
 
     # Excluímos o 'parent' para evitar loop ao listar filhos
     parent = fields.Nested("NodeSchema", exclude=("parent_edges", "child_edges"))

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from ..controllers.nodes import list_all_nodes, list_all_edges, get_nid, add_edge, add_node
+from ..controllers.nodes import list_all_nodes, list_all_edges, get_nid, add_edge, add_node, del_edge, del_graph
 
 # BLUEPRINT
 bp_nodes = Blueprint("nodes", __name__, url_prefix="/nodes")
@@ -16,6 +16,14 @@ def get_graph():
 @bp_nodes.route("/<int:id>", methods=["GET"])
 def get_node_id(id:int):
     return get_nid(id)
+
+@bp_nodes.route("/graph", methods=["DELETE"])
+def delete_edge():
+    return del_edge()
+
+@bp_nodes.route("/graph/clear", methods=["DELETE"])
+def clear_graph():
+    return del_graph()
 
 @bp_nodes.route("/graph", methods=["PATCH"])
 def add_edg():

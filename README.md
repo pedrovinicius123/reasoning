@@ -38,4 +38,4 @@ For this project, the designed routes and specific request methods are:
 *  /agents/reasoning [POST] => Starts reasoning process
 *  /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
 *  /nodes [POST, GET] => POST to add a node and GET to retrieve all
-*   /nodes/<int:id> [GET] => To retrieve a specific node
+*  /nodes/<int:id> [GET] => To retrieve a specific node

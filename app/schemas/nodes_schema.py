@@ -14,8 +14,8 @@ class NodeSchema(SQLAlchemyAutoSchema):
 
     id = auto_field(dump_only=True)
     is_primary = auto_field()
-    label = auto_field(validate=Length(min=16, max=128))
-    desc = auto_field(validate=Length(min=128, max=1024))
+    label = auto_field(validate=Length(min=16, max=128), required=True)
+    desc = auto_field(validate=Length(min=128, max=1024), required=True)
 
     # Para evitar recursão infinita na serialização, costuma-se mostrar apenas um nível
     child_edges = fields.Nested("EdgeSchema", many=True, dump_only=True)

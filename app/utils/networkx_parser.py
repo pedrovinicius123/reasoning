@@ -18,11 +18,19 @@ class NetworkxParser:
         self.edge_schema = EdgeSchema()
 
     def _node_attrs(self, node):
-        return {
-            "graph_id": node.graph_id,
-            "label": node.label,
-            "desc": node.desc,
-        }
+        try:
+            attrs = {
+                "graph_id": node.graph_id,
+                "label": node.label if node.label else "",
+                "desc": node.desc if node.desc else "",
+                "is_primary": getattr(node, 'is_primary', False),
+            }
+            return attrs
+        except AttributeError as e:
+            print(f"Error extracting attributes from node {node.id}: {e}")
+            print(f"Node object: {node}")
+            print(f"Node dir: {[attr for attr in dir(node) if not attr.startswith('_')]}")
+            raise
 
     def load(self):
         nodes = Node.query.filter_by(graph_id=self.graph_id).all()
@@ -31,9 +39,9 @@ class NetworkxParser:
 
         edges = Edge.query.filter_by(graph_id=self.graph_id).all()
         for ep in edges:
-            self.graph.add_edge(ep.parent_id, ep.child_id, relation=ep.relation, penalty=ep.penalty)
+            self.graph.add_edge(ep.parent_id, ep.child_id, relation=ep.relation, penalty=ep.penalty, desc=ep.desc)
             if ep.relation == "bi" and not self.graph.has_edge(ep.child_id, ep.parent_id):
-                self.graph.add_edge(ep.child_id, ep.parent_id, relation=ep.relation, penalty=ep.penalty)
+                self.graph.add_edge(ep.child_id, ep.parent_id, relation=ep.relation, penalty=ep.penalty, desc=ep.desc)
 
         return self.graph, self
     
@@ -77,6 +85,7 @@ class NetworkxParser:
                 if parent_node and child_node:
                     relation = edge_attrs.get("relation", "uni")
                     penalty = edge_attrs.get("penalty", 0.5)
+                    desc = edge_attrs.get("desc", None)
                     
                     edge = Edge.query.filter_by(
                         graph_id=self.graph_id,
@@ -87,6 +96,7 @@ class NetworkxParser:
                     if edge:
                         edge.relation = relation
                         edge.penalty = penalty
+                        edge.desc = desc
                         db.session.merge(edge)
                     else:
                         max_edge_id += 1
@@ -95,7 +105,8 @@ class NetworkxParser:
                             parent_id=parent_id,
                             child_id=child_id,
                             relation=relation,
-                            penalty=penalty
+                            penalty=penalty,
+                            desc=desc
                         )
                         db.session.add(new_edge)
             

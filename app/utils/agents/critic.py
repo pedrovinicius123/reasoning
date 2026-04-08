@@ -19,6 +19,7 @@ Propose changes on the nodes and, if necessary, remove nodes, and connections fr
 !IMPORTANT! Return only JSON with the format specified, without any additional text or explanation outside the JSON.
 !IMPORTANT! If there are no changes to be made, return an empty JSON ({{}}).
 !IMPORTANT! If there are cicles on the graph that involve the primary node, return an empty JSON ({{}}) and do not propose any changes.
+!IMPORTANT! Delete only nodes that are inconsistent, not primary, or are not connected to any node.
 
 Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, ANY DEVIATION FROM THE FORMAT WILL CAUSE PROBLEMS ON THE SYSTEM, SO FOLLOW IT STRICTLY):
 {Changes.model_json_schema()}
@@ -29,8 +30,9 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
             model=self.model,
             messages=[{"role":"user", "content": prompt}],
             options = {
-                "temperature":.0
-            }
+                "temperature":.0,
+            },
+            format=Changes.model_json_schema()
         ).message.content
         response = response.replace("json", "")
         response = response.replace("```", "")

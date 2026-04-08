@@ -1,20 +1,22 @@
 from abc import ABC, abstractmethod
-from ...extensions import client, db
+from ...extensions import db
 from ...schemas.edges_schema import EdgeSchema
 from ...schemas.nodes_schema import NodeSchema, Node
 from ..networkx_parser import NetworkxParser
 
 class Agent(ABC):
-    def __init__(self):
+    def __init__(self, task="general", **kwargs):
         self.session = db.session
+        self.task = task
         self.edges_schema = EdgeSchema(many=True)
         self.edge_schema = EdgeSchema()
         self.node_schema = NodeSchema()
-        self.client = client
         self.model = "qwen3.5:397b-cloud"
 
     def prompt_graph(self, graph):
         prompt = "Edges:\n\n"
+        if not graph.edges():
+            prompt += "No edges.\remember to add then.\n"
         for edge in graph.edges():
             a, b = edge
             prompt += f"{a} -> {b}\n"
@@ -37,6 +39,9 @@ class Agent(ABC):
                 print(f"Node data type: {type(graph.nodes[node])}")
                 print(f"Node data content: {graph.nodes[node]}")
                 raise
+
+        if not graph.nodes():
+            prompt += "No nodes\nRemember to add then.\n"
 
         return prompt
 

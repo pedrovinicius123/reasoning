@@ -11,12 +11,14 @@ class CreativeAgent(Agent):
 
     def interact(self, graph, new_nodes):
         prompt = f"""
-Propose {new_nodes} new nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties
+Propose {new_nodes} nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
 in order to append new mathematical knowledge for this graph. Also, for each new node, propose connections with the existing nodes in the graph, with a label, description and confiability for each connection.
 For each connection, describe the mathematical relation between the nodes, if there is any, and how the new node affects the existing node and vice versa.
 
 *Note*: the relations can be implications ("uni") or equities ("bi")
+!TASK! {self.task}
 
+!IMPORTANT!: if there are no nodes or edges present on the graph, create {new_nodes} new ones, with its connections. 
 !IMPORTANT! Return only JSON with the format specified, without any additional text or explanation outside the JSON.
 !IMPORTANT! Only use estabilished concepts on the graph, dont create new concepts that are not connected to any existing node, all new nodes must be connected to at least one existing node, and the connections must make sense with the knownledge already present on the graph, so use the existing nodes as reference for creating new nodes and connections.
 !IMPORTANT! Write the response clearly and extensivelly!
@@ -30,9 +32,9 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
         print("Prompt built, sending to model...")
         response = client.chat(
             model=self.model,
-            messages=[{"role":"user", "content": prompt}],
+            messages=[{"role":"user", "content":prompt}],
             options = {
-                "temperature":.5
+                "temperature":.5,
             }
         ).message.content
         response = response.replace("```json", "").replace("```", "")

@@ -45,110 +45,47 @@ class NetworkxParser:
 
         return self.graph, self
     
-    def dump(self, to_remove_edges=[], to_remove_nodes=[]):
-        try:
-            # Merge all nodes from the graph back to the database
-            for node_id in self.graph.nodes():
-                attrs = self.graph.nodes[node_id]
-                node = Node.query.get(node_id)
-                if node:
-                    node.label = attrs.get("label", "")
-                    node.desc = attrs.get("desc", "")
-                else:
-                    db.session.add(
-                        Node(
-                            id=node_id,
-                            graph_id=self.graph_id,
-                            label=attrs.get("label", ""),
-                            desc=attrs.get("desc", ""),
-                        )
-                    )
-            
-            db.session.commit() # Commit after merging nodes to ensure all nodes have IDs before processing edges
-            # Get or create Graph instance
-            graph_obj = Graph.query.get(self.graph_id)
-            if not graph_obj:
-                graph_obj = Graph(id=self.graph_id)
-                db.session.add(graph_obj)
-            db.session.commit()
-            
-            # Get the next edge id
-            max_edge_id = db.session.query(db.func.max(Edge.id)).scalar() or 0
-            
-            # Merge all edges from the graph back to the database
-            node_ids = list(self.graph.nodes())
-            nodes = {node.id: node for node in Node.query.filter(Node.id.in_(node_ids)).all()}
-            for parent_id, child_id in self.graph.edges():
-                edge_attrs = self.graph[parent_id][child_id]
-                parent_node = nodes.get(parent_id)
-                child_node = nodes.get(child_id)
-                if parent_node and child_node:
-                    relation = edge_attrs.get("relation", "uni")
-                    penalty = edge_attrs.get("penalty", 0.5)
-                    desc = edge_attrs.get("desc", None)
-                    
-                    edge = Edge.query.filter_by(
-                        graph_id=self.graph_id,
-                        parent_id=parent_id, 
-                        child_id=child_id
-                    ).first()
-                    
-                    if edge:
-                        edge.relation = relation
-                        edge.penalty = penalty
-                        edge.desc = desc
-                        db.session.merge(edge)
-                    else:
-                        max_edge_id += 1
-                        new_edge = Edge(
-                            graph_id=self.graph_id,
-                            parent_id=parent_id,
-                            child_id=child_id,
-                            relation=relation,
-                            penalty=penalty,
-                            desc=desc
-                        )
-                        db.session.add(new_edge)
-            
-            # Remove marked edges
-            for edge_spec in to_remove_edges or []:
-                edge_pairs = []
-                if isinstance(edge_spec, dict):
-                    edge_pairs.append((edge_spec.get("a"), edge_spec.get("b")))
-                elif isinstance(edge_spec, (list, tuple)) and len(edge_spec) == 2 and not isinstance(edge_spec[0], (list, tuple)):
-                    edge_pairs.append((edge_spec[0], edge_spec[1]))
-                else:
-                    edge_pairs.extend(
-                        (pair[0], pair[1])
-                        for pair in edge_spec
-                        if isinstance(pair, (list, tuple)) and len(pair) == 2
-                    )
+    def dump(self, to_remove_edges=[]):
+        for node_id in self.graph.nodes:
+            node_data = self.graph.nodes[node_id]
+            node = Node.query.filter_by(id=node_id).first()
 
-                for parent_id, child_id in edge_pairs:
-                    if parent_id is None or child_id is None:
-                        continue
-                    edge = Edge.query.filter_by(
-                        graph_id=self.graph_id,
-                        parent_id=parent_id,
-                        child_id=child_id
-                    ).first()
-                    if edge:
-                        db.session.delete(edge)
+            if node:
+                for k, v in node_data.items():
+                    if hasattr(node, k):
+                        setattr(node, k, v)
+            else:
+                # Filter to valid Node attributes
+                valid_keys = {'graph_id', 'label', 'desc', 'is_primary'}
+                filtered_data = {k: v for k, v in node_data.items() if k in valid_keys}
+                node = Node(**filtered_data)
+                db.session.add(node)
 
-            for node_id in to_remove_nodes or []:
-                target_id = node_id["id"] if isinstance(node_id, dict) else node_id
-                node = Node.query.get(target_id)
-                if node:
-                    db.session.delete(node)
-            
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            raise e
+        for edge in self.graph.edges(data=True):
+            parent_id, child_id, edge_data = edge
+            if (parent_id, child_id) in to_remove_edges:
+                continue
+
+            edge_record = Edge.query.filter_by(parent_id=parent_id, child_id=child_id).first()
+            if edge_record:
+                for k, v in edge_data.items():
+                    if hasattr(edge_record, k):
+                        setattr(edge_record, k, v)
+            else:
+                valid_keys = {'relation', 'penalty', 'desc'}
+                filtered_data = {k: v for k, v in edge_data.items() if k in valid_keys}
+                new_edge = Edge(parent_id=parent_id, child_id=child_id, graph_id=self.graph_id, **filtered_data)
+                db.session.add(new_edge)       
+
+        db.session.commit()
+
 
 class NetworkxParserManger:
-    def __init__(self, n_graphs):
+    def __init__(self, task, n_graphs):
         graph = Graph.query.order_by(Graph.id.desc()).first()
+        if not graph:
+            graph = Graph(task=task)
+            db.session.add(graph)
         self.graph_id = graph.id
         self.best = None
         self.parsers = []
@@ -162,7 +99,7 @@ class NetworkxParserManger:
         if not graphs_with_edges:
             return  # No graphs with edges to process
         bst = crossing_over_and_selection(*graphs_with_edges)
-        self.best = NetworkxParser(graph_id=1)
+        self.best = NetworkxParser(self.graph_id)
         self.best.graph = bst
         self.best.dump()  # Persist the best graph to graph_id=1 only
     

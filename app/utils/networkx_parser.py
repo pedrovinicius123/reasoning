@@ -58,6 +58,7 @@ class NetworkxParser:
                 # Filter to valid Node attributes
                 valid_keys = {'graph_id', 'label', 'desc', 'is_primary'}
                 filtered_data = {k: v for k, v in node_data.items() if k in valid_keys}
+                print(filtered_data)
                 node = Node(**filtered_data)
                 db.session.add(node)
 

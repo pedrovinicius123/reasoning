@@ -10,6 +10,7 @@ from ..schemas.agent_request_schemas import JsonRequestAgentSchemaCreative, Json
 from networkx import DiGraph
 from threading import Thread
 from flask import request, current_app
+import time # for debugging
 
 creative = CreativeAgent()
 critic = CriticAgent()
@@ -32,6 +33,10 @@ def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per
                 for result in results["connections"]:
                     a = result["a"]
                     b = result["b"]
+
+                    print(a)
+                    print(b)
+                    time.sleep(1)
 
                     g.add_node(a["id"], **{k: v for k, v in a.items() if k != "id"})                
                     g.add_node(b["id"], **{k: v for k, v in b.items() if k != "id"})

@@ -1,7 +1,7 @@
 from ..utils.agents.creative import CreativeAgent
 from ..utils.agents.critic import CriticAgent
 from ..utils.response import successful_response
-from ..utils.networkx_parser import NetworkxParserManger
+from ..utils.networkx_parser import NetworkxParserManager
 from ..models.graph import Graph
 from ..models.node import Node
 from ..schemas.edges_schema import EdgeSchema
@@ -21,7 +21,7 @@ req_schema_critic = JsonRequestAgentSchemaCritic()
 
 def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per_generation):
     with app_instance.app_context():
-        manager = NetworkxParserManger(task=task, n_graphs=n_graphs)
+        manager = NetworkxParserManager(task=task, n_graphs=n_graphs)
         graph = Graph.query.get(manager.graph_id)
         creative.task = task
         critic.task = task
@@ -34,10 +34,6 @@ def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per
                     a = result["a"]
                     b = result["b"]
 
-                    print(a)
-                    print(b)
-                    time.sleep(1)
-
                     g.add_node(a["id"], **{k: v for k, v in a.items() if k != "id"})                
                     g.add_node(b["id"], **{k: v for k, v in b.items() if k != "id"})
 
@@ -47,6 +43,10 @@ def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per
                     g.add_edge(a["id"], b["id"], **{k: v for k, v in result.items() if k not in ("a", "b")})
                 
                 reviewed_results = critic.interact(g)
+                if not reviewed_results:
+                    manager.parsers[i].graph = g.copy()
+                    continue
+
                 for to_add in reviewed_results["new_conns"]:
                     a = to_add["a"]
                     b = to_add["b"]
@@ -60,7 +60,7 @@ def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per
 
                 for rm_conn in reviewed_results["conns_to_delete"]:
                     g.remove_edge(rm_conn["a"]["id"], rm_conn["b"]["id"])
-                manager.parsers[i].graph = g
+                manager.parsers[i].graph = g.copy()
             manager.dump_best()
 
 def start_interact_with_graph_thread():

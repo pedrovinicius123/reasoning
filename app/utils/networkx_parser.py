@@ -5,9 +5,7 @@ from ..models.edges import Edge
 from ..models.graph import Graph
 from ..extensions import db
 from .agents.utils.genetic_crossing_over import crossing_over_and_selection
-import networkx as nx
-import copy, time
-
+import copy
 
 
 class NetworkxParser:
@@ -48,17 +46,17 @@ class NetworkxParser:
     def dump(self, to_remove_edges=[]):
         for node_id in self.graph.nodes:
             node_data = self.graph.nodes[node_id]
+            print(node_data)
             node = Node.query.filter_by(id=node_id).first()
 
             if node:
                 for k, v in node_data.items():
-                    if hasattr(node, k):
-                        setattr(node, k, v)
+                    setattr(node, k, v)
             else:
                 # Filter to valid Node attributes
                 valid_keys = {'graph_id', 'label', 'desc', 'is_primary'}
                 filtered_data = {k: v for k, v in node_data.items() if k in valid_keys}
-                print(filtered_data)
+                print("FILTERED ", filtered_data)
                 node = Node(**filtered_data)
                 db.session.add(node)
 
@@ -81,7 +79,7 @@ class NetworkxParser:
         db.session.commit()
 
 
-class NetworkxParserManger:
+class NetworkxParserManager:
     def __init__(self, task, n_graphs):
         graph = Graph.query.order_by(Graph.id.desc()).first()
         if not graph:

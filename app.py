@@ -12,6 +12,8 @@ if __name__ == "__main__":
             for j in range(n_nodes):
                 if i != j and random.random() > 1-conn_prob:
                     g.add_edge(i, j)
+                    g[i]["label"] = "label"
+                    g[j]["label"] = "label"
                     g[i][j]["penalty"] = random.random()
 
         return g

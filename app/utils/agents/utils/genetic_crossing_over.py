@@ -19,6 +19,14 @@ def crossing_over_and_selection(*graphs, threshold=.2):
         
         g = DiGraph()
         g.add_edges_from(best_edges_a + best_edges_b)
+        
+        # Copy node attributes
+        for node in g.nodes():
+            if node in a.nodes:
+                g.nodes[node].update(a.nodes[node])
+            if node in b.nodes:
+                g.nodes[node].update(b.nodes[node])
+        
         new_gs.append(g)
 
     best_g = max(new_gs, key=edges_mean)

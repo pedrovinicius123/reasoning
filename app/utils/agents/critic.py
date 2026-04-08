@@ -20,8 +20,8 @@ Propose changes on the nodes and, if necessary, remove nodes, and connections fr
 !IMPORTANT! If there are no changes to be made, return an empty JSON ({{}}).
 !IMPORTANT! If there are cicles on the graph that involve the primary node, return an empty JSON ({{}}) and do not propose any changes.
 !IMPORTANT! Delete only nodes that are inconsistent, not primary, or are not connected to any node.
-
-Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, ANY DEVIATION FROM THE FORMAT WILL CAUSE PROBLEMS ON THE SYSTEM, SO FOLLOW IT STRICTLY):
+Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, ANY DEVIATION FROM THE FORMAT WILL CAUSE PROBLEMS ON THE SYSTEM, SO FOLLOW IT STRICTLY)
+Also, dont forget to left the 'a' and 'b' params of connection in 'int' form but in 'Node' form:
 {Changes.model_json_schema()}
 
 """

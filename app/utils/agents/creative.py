@@ -1,17 +1,19 @@
 from .agent import Agent
-from ...schemas.agent_schemas import Output
 from ...extensions import client
 from ...config import Config
+from ...models.graph import Graph
+from ..networkx_parser import NetworkxParser
 import json
 
 class CreativeAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CREATIVE_MODEL)
+        self.graph, _ = NetworkxParser(kwargs.get("graph_id")).load()
 
-    def interact(self, graph, new_nodes):
+    def interact(self, new_nodes):
         prompt = f"""
-Propose {new_nodes} nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
+Propose {new_nodes} new nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
 in order to append new mathematical knowledge for this graph. Also, for each new node, propose connections with the existing nodes in the graph, with a label, description and confiability for each connection.
 For each connection, describe the mathematical relation between the nodes, if there is any, and how the new node affects the existing node and vice versa.
 
@@ -25,10 +27,30 @@ For each connection, describe the mathematical relation between the nodes, if th
 !IMPORTANT! If there are cicles on the graph that involve the primary node, return an empty JSON ({{}}) and do not propose any changes.
 
 Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, ANY DEVIATION FROM THE FORMAT WILL CAUSE PROBLEMS ON THE SYSTEM, SO FOLLOW IT STRICTLY):
-{Output.model_json_schema()}
+{{
+    "connections": [{{
+        "a": {{
+            "id": "integer",
+            "label": "string",
+            "desc": "string",
+            "penalty": "float [0.0 - 1.0]"
+        }},
+        "b": {{
+            "id": "integer",
+            "label": "string",
+            "desc": "string",
+            "penalty": "float [0.0 - 1.0]"
+        }},
+        "desc": "string",
+        "penalty": "float [0.0 - 1.0]",
+        "relation": "uni|bi"
+    }}]
+}}
+
 """
+        
         print("Before bug")
-        prompt += self.prompt_graph(graph)
+        prompt += self.prompt_graph(self.graph)
         print("Prompt built, sending to model...")
         response = client.chat(
             model=self.model,

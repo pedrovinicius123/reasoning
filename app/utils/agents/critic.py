@@ -1,13 +1,14 @@
 from .agent import Agent
-from ...schemas.agent_schemas import Changes
 from ...extensions import client
 from ...config import Config
+from ..networkx_parser import NetworkxParser
 import json
 
 class CriticAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CRITIC_MODEL)
+        self.graph, _ = NetworkxParser(graph_id=kwargs.get("graph_id")).load()
 
     def interact(self, graph):
         print("Starting critic analysis...")
@@ -22,17 +23,48 @@ Propose changes on the nodes and, if necessary, remove nodes, and connections fr
 !IMPORTANT! Delete only nodes that are inconsistent, not primary, or are not connected to any node.
 Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, ANY DEVIATION FROM THE FORMAT WILL CAUSE PROBLEMS ON THE SYSTEM, SO FOLLOW IT STRICTLY)
 Also, dont forget to left the 'a' and 'b' params of connection in 'int' form but in 'Node' form:
-{Changes.model_json_schema()}
+{{
+   "new_conns": [{{
+    "a": {{
+        "id":"integer",
+        "label":"string",
+        "desc":"string",
+        "penalty":"float [0.0 - 1.0]"
+
+    }},
+    "b": {{
+        "id": "integer",
+        "label": "string",
+        "desc": "string",
+        "penalty":"float [0.0 - 1.0]"
+    }},
+    "desc": "string",
+    "penalty": "float [0.0 - 1.0]",
+    "relation": "uni|bi"
+    }}],
+
+    "nodes_to_delete":[{{
+        "id":"integer",
+        "label":"string",
+        "desc":"string",
+        "penalty":"float [0.0 - 1.0]"
+
+    }}],
+
+    "conns_to_delete":[{{
+        "a":"integer",
+        "b":"integer",
+    }}]
+}}
 
 """
-        prompt += self.prompt_graph(graph)
+        prompt += self.prompt_graph(self.graph)
         response = client.chat(
             model=self.model,
             messages=[{"role":"user", "content": prompt}],
             options = {
                 "temperature":.0,
-            },
-            format=Changes.model_json_schema()
+            }
         ).message.content
         response = response.replace("json", "")
         response = response.replace("```", "")

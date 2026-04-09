@@ -6,7 +6,7 @@ def edges_mean(graph):
         return 0
     return sum([edge[2]["penalty"] for edge in graph.edges(data=True)])/len(graph.edges())
 
-def crossing_over_and_selection(*graphs, threshold=.2):
+def crossing_over_and_selection(*graphs, threshold=.5):
     pairs = combinations(graphs, 2)
     new_gs = []
 

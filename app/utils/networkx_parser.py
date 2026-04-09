@@ -4,7 +4,7 @@ from ..schemas.edges_schema import EdgeSchema
 from ..models.edges import Edge
 from ..models.graph import Graph
 from ..extensions import db
-from .agents.utils.genetic_crossing_over import crossing_over_and_selection
+from .agents.agent_utils.genetic_crossing_over import crossing_over_and_selection
 import copy
 
 
@@ -85,6 +85,8 @@ class NetworkxParserManager:
         if not graph:
             graph = Graph(task=task)
             db.session.add(graph)
+            db.session.commit()
+
         self.graph_id = graph.id
         self.best = None
         self.parsers = []

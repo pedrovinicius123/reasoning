@@ -17,9 +17,9 @@ class Agent(ABC):
         prompt = "Edges:\n\n"
         if not graph.edges():
             prompt += "No edges.\remember to add then.\n"
-        for edge in graph.edges():
-            a, b = edge
-            prompt += f"{a} -> {b}\n"
+        for edge in graph.edges(data=True):
+            a, b, features = edge
+            prompt += f"{a} {'->' if features["relation"] == "uni" else '<->'} {b}\n"
 
         prompt += "\nNodes:\n"
         for node in graph.nodes():

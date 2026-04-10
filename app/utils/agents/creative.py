@@ -12,15 +12,16 @@ class CreativeAgent(Agent):
 
     def interact(self, new_nodes, graph):
         prompt = f"""
-Propose {new_nodes} new nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
+Propose {new_nodes} new nodes for this graph, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
 in order to append new mathematical knowledge for this graph. Also, for each new node, propose connections with the existing nodes in the graph, with a label, description and confiability for each connection.
 For each connection, describe the mathematical relation between the nodes, if there is any, and how the new node affects the existing node and vice versa.
 
 *Note*: the relations can be implications ("uni") or equities ("bi")
 !TASK! {self.task}
 
-!IMPORTANT!: if there are no nodes or edges present on the graph, create {new_nodes} new ones, with its connections. 
-!IMPORTANT! Return only JSON with the format specified, without any additional text or explanation outside the JSON.
+!IMPORTANT! DO NOT USE CONJECTURES, ONLY WELL STABILISHED THEOREMS AND LEMMAS
+!IMPORTANT! If there are no nodes or edges present on the graph, create {new_nodes} new ones, with its connections. 
+!IMPORTANT! RETURN ONLY JSON with the format specified, without any additional text or explanation outside the JSON.
 !IMPORTANT! Only use estabilished concepts on the graph, dont create new concepts that are not connected to any existing node, all new nodes must be connected to at least one existing node, and the connections must make sense with the knownledge already present on the graph, so use the existing nodes as reference for creating new nodes and connections.
 !IMPORTANT! Write the response clearly and extensivelly!
 !IMPORTANT! If there are cicles on the graph that involve the primary node, return an empty JSON ({{}}) and do not propose any changes.
@@ -59,6 +60,7 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
             }
         ).message.content
         response = response.replace("```json", "").replace("```", "")
+        print(response)
         try:
             results = json.loads(response)
             print(results)

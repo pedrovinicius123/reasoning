@@ -103,4 +103,4 @@ class NetworkxParserManager:
         self.best = NetworkxParser(self.graph_id)
         self.best.graph = bst
         self.best.dump()  # Persist the best graph to graph_id=1 only
-    
+        return bst

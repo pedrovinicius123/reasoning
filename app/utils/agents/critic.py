@@ -12,7 +12,7 @@ class CriticAgent(Agent):
     def interact(self, graph):
         print("Starting critic analysis...")
         prompt = f"""
-Analyze the graph bellow and show any issues within the knownledge contained on it.
+Analyze the graph bellow and show any issues within the knownledge contained on it, to know: Inconsistent connections, erroneous nodes, and any non proved aspect of the graph.
 
 Propose changes on the nodes and, if necessary, remove nodes, and connections from the knownledge graph.
 !IMPORTANT! Do not delete any node marked as primary, and do not propose deletion of any node connected to it.

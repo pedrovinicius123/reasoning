@@ -9,9 +9,8 @@ class CreativeAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CREATIVE_MODEL)
-        self.graph, _ = NetworkxParser(kwargs.get("graph_id")).load()
 
-    def interact(self, new_nodes):
+    def interact(self, new_nodes, graph):
         prompt = f"""
 Propose {new_nodes} new nodes for this graph, assuming everything on it is True, with its's respective labels, descriptions and penalties, in order to fullfill the assigned task bellow
 in order to append new mathematical knowledge for this graph. Also, for each new node, propose connections with the existing nodes in the graph, with a label, description and confiability for each connection.
@@ -43,14 +42,14 @@ Follow the format bellow strictly (DONT FORGET TO FOLLOW THE FORMAT STRICTLY, AN
         }},
         "desc": "string",
         "penalty": "float [0.0 - 1.0]",
-        "relation": "uni|bi"
+        "relation": "string [uni|bi]"
     }}]
 }}
 
 """
         
         print("Before bug")
-        prompt += self.prompt_graph(self.graph)
+        prompt += self.prompt_graph(graph)
         print("Prompt built, sending to model...")
         response = client.chat(
             model=self.model,

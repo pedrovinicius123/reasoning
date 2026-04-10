@@ -8,7 +8,6 @@ class CriticAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.CRITIC_MODEL)
-        self.graph, _ = NetworkxParser(graph_id=kwargs.get("graph_id")).load()
 
     def interact(self, graph):
         print("Starting critic analysis...")
@@ -58,7 +57,7 @@ Also, dont forget to left the 'a' and 'b' params of connection in 'int' form but
 }}
 
 """
-        prompt += self.prompt_graph(self.graph)
+        prompt += self.prompt_graph(graph)
         response = client.chat(
             model=self.model,
             messages=[{"role":"user", "content": prompt}],

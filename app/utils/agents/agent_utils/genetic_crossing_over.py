@@ -26,7 +26,7 @@ def crossing_over_and_selection(*graphs, threshold=.1):
                 g.remove_node(node)
                 continue
             
-            if node in a.nodes:
+            if node in a.nodes():
                 g.nodes[node].update(a.nodes[node])
             if node in b.nodes:
                 g.nodes[node].update(b.nodes[node])

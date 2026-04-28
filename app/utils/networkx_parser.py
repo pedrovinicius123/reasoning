@@ -87,12 +87,13 @@ class NetworkxParserManager:
             db.session.add(graph)
             db.session.commit()
 
-        self.graph_id = graph.id
+        self.graph_id = graph.id+1
         self.best = None
         self.parsers = []
         for _ in range(n_graphs):
-            _, parser = NetworkxParser(self.graph_id).load()
+            graph, parser = NetworkxParser(self.graph_id).load()
             self.parsers.append(parser)
+            print(self.parsers, graph)
         self.best = self.parsers[-1]
 
     def dump_best(self):

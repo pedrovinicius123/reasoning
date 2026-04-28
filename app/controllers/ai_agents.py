@@ -61,7 +61,11 @@ def interact_with_graph(app_instance, task, n_graphs, generations, new_nodes_per
                     parsing.remove_node(rm_node["id"])
 
                 for rm_conn in reviewed_results["conns_to_delete"]:
-                    parsing.remove_edge(rm_conn["a"], rm_conn["b"])
+                    try:
+                        parsing.remove_edge(rm_conn["a"], rm_conn["b"])
+                    except Exception as err:
+                        print(err)
+                    
                 manager.parsers[i].graph = parsing.copy()
             graph = manager.dump_best()
 

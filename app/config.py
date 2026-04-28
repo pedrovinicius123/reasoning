@@ -3,6 +3,7 @@ import os
 
 load_dotenv()
 BASE = os.path.curdir
+print(os.getenv("OLLAMA_HOST"))
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -12,5 +13,5 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS=False
     CREATIVE_MODEL = os.getenv("CREATIVE_MODEL", "qwen3.5:397b-cloud")
     CRITIC_MODEL = os.getenv("CRITIC_MODEL", "gemma4:31b-cloud")
-    OLLAMA_HOST = os.getenv("OLLAMA_HOST", "https://ollama.com")
+    OLLAMA_HOST = "https://ollama.com"
     OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")

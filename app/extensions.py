@@ -11,8 +11,12 @@ migrate = Migrate()
 m = Marshmallow()
 
 load_dotenv()
+print(os.getenv("OLLAMA_API_KEY"))
 
 # Configure Ollama client.
 # The ollama client already reads OLLAMA_API_KEY from the environment,
 # so we only need to pass the host explicitly.
-client = Client(host=Config.OLLAMA_HOST)
+print(Config.OLLAMA_HOST)
+client = Client(host=Config.OLLAMA_HOST, headers={
+    "Authorization": f"Bearer {Config.OLLAMA_API_KEY}"
+})

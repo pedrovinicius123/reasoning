@@ -1,8 +1,7 @@
-from app import create_app
-from app.utils.networkx_parser import NetworkxParserManager
+from flask import Flask, request, jsonify, render_template
 
-app = create_app()
+app = Flask(__name__, template_folder='app/templates', static_folder='app/static')
+
+
 if __name__ == '__main__':
-    with app.app_context():
-        net = NetworkxParserManager("Solve P vs NP", 2)
-
+    app.run(debug=True)

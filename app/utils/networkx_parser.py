@@ -80,13 +80,13 @@ class NetworkxParser:
 
 class NetworkxParserManager:
     def __init__(self, task, n_graphs):
-        graph = Graph.query.order_by(Graph.id.desc()).first()
+        graph = Graph.query.filter_by(task=task).first()
         if not graph:
             graph = Graph(task=task)
             db.session.add(graph)
             db.session.commit()
 
-        self.graph_id = graph.id+1
+        self.graph_id = graph.id
         self.best = None
         self.parsers = []
         for _ in range(n_graphs):

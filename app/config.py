@@ -11,5 +11,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", f"sqlite:///{BASE}/app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS=False
     CREATIVE_MODEL = os.getenv("CREATIVE_MODEL", "gemma4:31b-cloud")
+    WRITER_MODEL = os.getenv("WRITER_MODEL", "gemma4:31b-cloud")
     OLLAMA_HOST = "https://ollama.com"
     OLLAMA_API_KEY = os.getenv("OLLAMA_API_KEY")

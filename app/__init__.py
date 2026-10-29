@@ -4,7 +4,7 @@ from .routes.nodes import bp_nodes
 from .routes.agents import bp_agents
 from werkzeug.exceptions import NotFound
 from marshmallow import ValidationError
-from flask import Flask
+from flask import Flask, send_from_directory
 from .config import Config
 
 def create_app():
@@ -23,7 +23,7 @@ def create_app():
     #Error handlers
     @app.errorhandler(NotFound)
     def not_found(err):
-        return error_response(err, 404)
+        return error_response(err, 404), 404
     
     @app.errorhandler(ValidationError)
     def validation_error(err):
@@ -36,4 +36,9 @@ def create_app():
     # Adding blueprints 
     app.register_blueprint(bp_nodes)
     app.register_blueprint(bp_agents)
+
+    @app.get("/")
+    def index():
+        return send_from_directory(app.static_folder, "index.html")
+
     return app

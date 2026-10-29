@@ -2,6 +2,7 @@ from ..schemas.nodes_schema import NodeSchema
 from ..schemas.edges_schema import EdgeSchema
 from ..models.node import Node
 from ..models.edges import Edge
+from ..models.graph import Graph
 from ..utils.networkx_parser import NetworkxParser
 from ..utils.response import successful_response
 from ..extensions import db
@@ -14,6 +15,37 @@ edge_schema = EdgeSchema()
 
 nodes_schema = NodeSchema(many=True)
 edges_schema = EdgeSchema(many=True)
+
+def list_graphs():
+    graphs = Graph.query.order_by(Graph.id.desc()).all()
+    return successful_response([
+        {"id": graph.id, "task": graph.task, "nodes": len(graph.nodes), "edges": len(graph.edges)}
+        for graph in graphs
+    ])
+
+def get_graph(graph_id):
+    graph = Graph.query.get_or_404(graph_id)
+    nodes = Node.query.filter_by(graph_id=graph_id).all()
+    edges = Edge.query.filter_by(graph_id=graph_id).all()
+    return successful_response({
+        "id": graph.id,
+        "task": graph.task,
+        "nodes": [
+            {"id": node.id, "label": node.label, "desc": node.desc, "is_primary": node.is_primary}
+            for node in nodes
+        ],
+        "edges": [
+            {
+                "id": edge.id,
+                "source": edge.parent_id,
+                "target": edge.child_id,
+                "relation": edge.relation,
+                "penalty": edge.penalty,
+                "desc": edge.desc or "",
+            }
+            for edge in edges
+        ],
+    })
 
 def list_all_nodes():
     id = request.args.get("id", type=int)
@@ -137,6 +169,19 @@ def del_graph():
     db.session.commit()
 
     return successful_response({"message": f"Graph {graph_id} cleared. Deleted {nodes_deleted} nodes and {edges_deleted} edges."}, 200)
+
+def delete_graph_record(graph_id):
+    graph = Graph.query.get_or_404(graph_id)
+    edges_deleted = Edge.query.filter_by(graph_id=graph_id).delete(synchronize_session=False)
+    nodes_deleted = Node.query.filter_by(graph_id=graph_id).delete(synchronize_session=False)
+    db.session.delete(graph)
+    db.session.commit()
+
+    return successful_response({
+        "message": f"Graph {graph_id} deleted.",
+        "deleted_nodes": nodes_deleted,
+        "deleted_edges": edges_deleted,
+    })
 
 def add_node():
     data = request.json

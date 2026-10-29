@@ -1,10 +1,25 @@
 from flask import Blueprint
-from ..controllers.nodes import list_all_nodes, list_all_edges, get_nid, add_edge, add_node, del_edge, del_graph
+from ..controllers.nodes import (
+    list_all_nodes, list_all_edges, get_nid, add_edge, add_node, del_edge, del_graph,
+    list_graphs, get_graph as fetch_graph, delete_graph_record,
+)
 
 # BLUEPRINT
 bp_nodes = Blueprint("nodes", __name__, url_prefix="/nodes")
 
 # ROUTES
+@bp_nodes.route("/graphs", methods=["GET"])
+def get_graphs():
+    return list_graphs()
+
+@bp_nodes.route("/graph/<int:graph_id>", methods=["GET"])
+def get_graph_by_id(graph_id):
+    return fetch_graph(graph_id)
+
+@bp_nodes.route("/graphs/<int:graph_id>", methods=["DELETE"])
+def delete_graph_by_id(graph_id):
+    return delete_graph_record(graph_id)
+
 @bp_nodes.route("/", methods=["GET"])
 def get_nodes():
     return list_all_nodes()

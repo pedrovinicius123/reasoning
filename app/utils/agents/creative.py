@@ -4,6 +4,55 @@ from ...config import Config
 import json
 
 
+def _escape_invalid_json_string_escapes(payload: str) -> str:
+  repaired = []
+  in_string = False
+  index = 0
+
+  while index < len(payload):
+    character = payload[index]
+    if not in_string:
+      repaired.append(character)
+      if character == '"':
+        in_string = True
+      index += 1
+      continue
+
+    if character == '"':
+      repaired.append(character)
+      in_string = False
+      index += 1
+      continue
+
+    if character != "\\":
+      repaired.append(character)
+      index += 1
+      continue
+
+    if index + 1 >= len(payload):
+      repaired.append("\\\\")
+      index += 1
+      continue
+
+    escaped = payload[index + 1]
+    if escaped in '"\\/bfnrt':
+      repaired.extend((character, escaped))
+      index += 2
+      continue
+
+    if escaped == "u" and index + 5 < len(payload):
+      unicode_digits = payload[index + 2:index + 6]
+      if all(digit in "0123456789abcdefABCDEF" for digit in unicode_digits):
+        repaired.append(payload[index:index + 6])
+        index += 6
+        continue
+
+    repaired.append("\\\\")
+    index += 1
+
+  return "".join(repaired)
+
+
 def _limpar_formal_statement(stmt: str) -> str:
     # Remove `;` que não estejam dentro de um bloco `by ... ; ...`
     # Estratégia conservadora: remove `;` no final de linha ou seguido de espaço/quebra,
@@ -36,6 +85,8 @@ The first node must be an afirmation about the task provided (for example, for P
 Every node coming from it must be also a logical affirmation
 Every new node MUST be connected to at least one existing node (or to another new node if the graph is empty).  
 Do NOT introduce concepts that are disconnected from the existing graph.
+Node ids must be integers. Reuse an existing id only for the same existing node; use a distinct id for every new node.
+Before adding a proposition, compare its label with existing nodes and reuse the existing node instead of repeating it. Do not propose two nodes with the same label in one response.
 
 
 ### Mathematical rigor
@@ -97,6 +148,8 @@ Return **ONLY** a JSON object with the following shape, with **no text outside t
 ### Final rules
 - If the graph already contains a cycle involving the primary node, return an empty JSON object: `{{}}`.
 - Do NOT use conjectures.
+- Return valid JSON: escape every backslash in string values as `\\\\`. For example, encode `NP \\ P` as `"NP \\\\ P"`.
+- Encode line breaks in string values as `\\n` and escape quotation marks inside strings. Never emit invalid escapes such as `\\ ` or `\\P`.
 - Write the response clearly and extensively **inside the JSON fields**, but do not add prose outside the JSON.
 - Follow the JSON schema exactly. Any deviation will break the downstream system.
 """
@@ -112,14 +165,43 @@ Return **ONLY** a JSON object with the following shape, with **no text outside t
                 "temperature": 0.5,
             },
         ).message.content
-        response = response.replace("```json", "").replace("```", "")
+        response = response.replace("```json", "").replace("```", "").strip()
         print(response)
         try:
-            results = json.loads(response)
-            # Validate against schema
+            try:
+                results = json.loads(response)
+            except json.JSONDecodeError:
+                repaired_response = _escape_invalid_json_string_escapes(response)
+                if repaired_response == response:
+                    raise
+                results = json.loads(repaired_response)
+            if results == {}:
+                return results
+            if not isinstance(results, dict) or not isinstance(results.get("connections"), list):
+                raise ValueError("Expected an object with a connections array")
             for result in results["connections"]:
-                if "lean" not in result:
-                    raise ValueError("Lean Code not provided")
+                if not isinstance(result, dict) or not all(key in result for key in ("a", "b", "lean", "relation")):
+                    raise ValueError("Each connection must include a, b, lean, and relation")
+                if result["relation"] not in ("uni", "bi"):
+                    raise ValueError("Connection relation must be uni or bi")
+                for node in (result["a"], result["b"]):
+                    if (
+                        not isinstance(node, dict)
+                        or not isinstance(node.get("id"), int)
+                        or isinstance(node.get("id"), bool)
+                    ):
+                        raise ValueError("Each node must have an integer id")
+                    if not isinstance(node.get("label"), str) or not isinstance(node.get("desc"), str):
+                        raise ValueError("Each node must have a label and description")
+                if not isinstance(result.get("desc"), str):
+                    raise ValueError("Each connection must have a description")
+                if not isinstance(result.get("penalty"), (int, float)) or isinstance(result.get("penalty"), bool):
+                    raise ValueError("Each connection must have a numeric penalty")
+                lean = result.get("lean")
+                if not isinstance(lean, dict) or not all(
+                    isinstance(lean.get(key), str) for key in ("formal_statement", "content")
+                ):
+                    raise ValueError("Lean formal_statement and content are required")
 
             return results
         except json.JSONDecodeError as e:

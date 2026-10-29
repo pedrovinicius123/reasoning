@@ -25,7 +25,6 @@ class Agent(ABC):
         for node in graph.nodes():
             try:
                 node_data = graph.nodes[node]
-                print(f"Node {node} attributes: {node_data}")
                 label = node_data.get('label', '')
                 desc = node_data.get('desc', '')
                 is_primary = node_data.get('is_primary', False)

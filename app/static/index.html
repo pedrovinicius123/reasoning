@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174a43">
+  <title>Reasoning | Graph Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="/" aria-label="Reasoning, início">
+      <span class="mark" aria-hidden="true">R</span>
+      <span>reasoning<span class="wordmark-dot">.</span></span>
+    </a>
+    <div class="topbar-meta"><span class="live-dot"></span><span id="connection-status">API local</span></div>
+  </header>
+
+  <main class="workspace">
+    <section class="intro-row">
+      <div>
+        <p class="eyebrow">LABORATÓRIO DE ARGUMENTOS</p>
+        <h1>Graph workbench</h1>
+      </div>
+      <p class="intro-note">Construa, inspecione e interprete relações verificadas.</p>
+    </section>
+
+    <section class="request-panel" aria-labelledby="request-title">
+      <div class="panel-heading">
+        <div><p class="eyebrow">NOVA EXECUÇÃO</p><h2 id="request-title">Iniciar raciocínio</h2></div>
+        <span class="request-index">01 / INPUT</span>
+      </div>
+      <form id="reasoning-form">
+        <label class="task-field" for="task">Problema ou pergunta
+          <textarea id="task" name="task" maxlength="256" required placeholder="Ex.: Quais condições implicam que uma função contínua seja uniformemente contínua?"></textarea>
+        </label>
+        <div class="parameters">
+          <label for="n-graphs">Grafos <input id="n-graphs" type="number" min="1" max="5" value="1"></label>
+          <label for="generations">Gerações <input id="generations" type="number" min="1" max="20" value="2"></label>
+          <label for="new-nodes">Nós por lote <input id="new-nodes" type="number" min="1" max="10" value="3"></label>
+          <button class="button button-primary" type="submit"><span aria-hidden="true">↗</span> Executar</button>
+        </div>
+      </form>
+      <div class="run-status" aria-live="polite"><span class="status-pulse"></span><span id="run-status">Pronto para executar</span></div>
+    </section>
+
+    <section class="analysis-layout">
+      <section class="graph-panel" aria-labelledby="graph-title">
+        <div class="section-toolbar">
+          <div><p class="eyebrow">EXPLORADOR</p><h2 id="graph-title">Grafo de conhecimento</h2></div>
+          <div class="graph-controls">
+            <label class="select-label" for="graph-select">Grafo
+              <select id="graph-select"><option value="">Nenhum grafo</option></select>
+            </label>
+            <button id="refresh-graphs" class="button button-quiet" type="button" title="Atualizar lista de grafos">Atualizar</button>
+            <button id="delete-graph" class="button button-danger" type="button" title="Excluir o grafo selecionado" disabled>Excluir</button>
+          </div>
+        </div>
+        <div class="graph-summary" id="graph-summary"><span>Selecione um grafo para inspecionar</span></div>
+        <div class="graph-stage" id="graph-stage">
+          <svg id="graph-svg" viewBox="0 0 900 560" role="img" aria-label="Visualização do grafo"></svg>
+          <div class="graph-empty" id="graph-empty"><span class="empty-glyph">○</span><p>O grafo aparecerá aqui</p><small>Escolha uma execução existente ou inicie um novo raciocínio.</small></div>
+          <div class="zoom-controls" aria-label="Controles de visualização">
+            <button id="zoom-in" type="button" title="Aumentar zoom">+</button>
+            <button id="zoom-out" type="button" title="Diminuir zoom">−</button>
+            <button id="zoom-reset" type="button" title="Redefinir visualização">⌂</button>
+          </div>
+        </div>
+        <div class="graph-legend"><span><i class="legend-node"></i> Proposição</span><span><i class="legend-line"></i> Implicação</span><span><i class="legend-line legend-bi"></i> Equivalência</span></div>
+        <aside class="node-inspector" id="node-inspector" hidden>
+          <button id="close-inspector" class="close-button" type="button" aria-label="Fechar detalhes">×</button>
+          <p class="eyebrow">PROPOSIÇÃO SELECIONADA</p><h3 id="inspector-label"></h3><p id="inspector-desc"></p><span id="inspector-primary" class="primary-tag" hidden>Afirmação principal</span>
+        </aside>
+      </section>
+
+      <section class="writer-panel" aria-labelledby="writer-title">
+        <div class="writer-heading">
+          <div><p class="eyebrow">SÍNTESE</p><h2 id="writer-title">Writer</h2></div>
+          <button id="write-button" class="button button-quiet" type="button" disabled><span aria-hidden="true">✳</span> Gerar texto</button>
+        </div>
+        <div class="writer-meta"><span id="writer-state">Aguardando grafo</span><span class="model-label">MODELO WRITER</span></div>
+        <article class="writer-output" id="writer-output" aria-live="polite"><p class="writer-placeholder">A síntese do Writer será exibida aqui, com as expressões matemáticas renderizadas.</p></article>
+      </section>
+    </section>
+    <footer><span>REASONING ENGINE</span><span id="event-log">Nenhuma atividade nesta sessão</span></footer>
+  </main>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script defer src="/static/app.js"></script>
+</body>
+</html>

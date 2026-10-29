@@ -6,6 +6,70 @@ from ..models.graph import Graph
 from ..extensions import db
 from .agents.agent_utils.genetic_crossing_over import crossing_over_and_selection
 import copy
+import re
+import unicodedata
+
+
+def normalize_node_label(label):
+    if not isinstance(label, str):
+        return ""
+    label = unicodedata.normalize("NFKC", label)
+    for command, symbol in (
+        ("leftrightarrow", "↔"),
+        ("implies", "→"),
+        ("subseteq", "⊆"),
+        ("notin", "∉"),
+        ("neq", "≠"),
+        ("ne", "≠"),
+        ("land", "∧"),
+        ("lor", "∨"),
+        ("to", "→"),
+        ("in", "∈"),
+    ):
+        label = re.sub(rf"\\{command}\b", symbol, label)
+    label = label.replace("!=", "≠").replace("\\", "∖")
+    label = re.sub(r"\s*([=≠<>≤≥∈∉⊆⊂∧∨→↔∖])\s*", r"\1", label)
+    return " ".join(label.split())
+
+
+def collapse_duplicate_nodes(graph):
+    collapsed = DiGraph()
+    canonical_ids = {}
+    id_map = {}
+
+    for node_id, attributes in graph.nodes(data=True):
+        label_key = normalize_node_label(attributes.get("label", ""))
+        canonical_id = canonical_ids.get(label_key) if label_key else None
+        if canonical_id is None:
+            canonical_id = node_id
+            if label_key:
+                canonical_ids[label_key] = canonical_id
+            collapsed.add_node(canonical_id, **attributes.copy())
+        else:
+            canonical = collapsed.nodes[canonical_id]
+            canonical["is_primary"] = canonical.get("is_primary", False) or attributes.get("is_primary", False)
+            if len(attributes.get("desc", "")) > len(canonical.get("desc", "")):
+                canonical["desc"] = attributes["desc"]
+        id_map[node_id] = canonical_id
+
+    for source, target, attributes in graph.edges(data=True):
+        canonical_source = id_map[source]
+        canonical_target = id_map[target]
+        if canonical_source == canonical_target:
+            continue
+        if not collapsed.has_edge(canonical_source, canonical_target):
+            collapsed.add_edge(canonical_source, canonical_target, **attributes.copy())
+            continue
+
+        canonical_edge = collapsed.edges[canonical_source, canonical_target]
+        if attributes.get("relation") == "bi":
+            canonical_edge["relation"] = "bi"
+        if attributes.get("penalty", float("inf")) < canonical_edge.get("penalty", float("inf")):
+            canonical_edge["penalty"] = attributes["penalty"]
+        if len(attributes.get("desc") or "") > len(canonical_edge.get("desc") or ""):
+            canonical_edge["desc"] = attributes["desc"]
+
+    return collapsed
 
 
 class NetworkxParser:
@@ -31,6 +95,7 @@ class NetworkxParser:
             raise
 
     def load(self):
+        self.graph = DiGraph()
         nodes = Node.query.filter_by(graph_id=self.graph_id).all()
         for item in nodes:
             self.graph.add_node(item.id, **self._node_attrs(item))
@@ -44,27 +109,53 @@ class NetworkxParser:
         return self.graph, self
     
     def dump(self, to_remove_edges=[]):
+        self.graph = collapse_duplicate_nodes(self.graph)
+        node_ids = {}
         for node_id in self.graph.nodes:
             node_data = self.graph.nodes[node_id]
-            print(node_data)
-            node = Node.query.filter_by(id=node_id).first()
+            node = Node.query.filter_by(id=node_id, graph_id=self.graph_id).first()
 
             if node:
                 for k, v in node_data.items():
-                    setattr(node, k, v)
+                    if hasattr(node, k):
+                        setattr(node, k, v)
             else:
-                # Filter to valid Node attributes
-                valid_keys = {'graph_id', 'label', 'desc', 'is_primary', 'lean_code'}
-                filtered_data = {k: v for k, v in node_data.items() if k in valid_keys}
-                node = Node(**filtered_data)
+                node = Node(
+                    graph_id=self.graph_id,
+                    label=node_data.get("label", ""),
+                    desc=node_data.get("desc", ""),
+                    is_primary=node_data.get("is_primary", False),
+                )
                 db.session.add(node)
+                db.session.flush()
+            node_ids[node_id] = node.id
+
+        persisted_node_ids = {
+            node_id
+            for (node_id,) in db.session.query(Node.id).filter_by(graph_id=self.graph_id).all()
+        }
+        stale_node_ids = persisted_node_ids - set(node_ids.values())
+        if stale_node_ids:
+            Edge.query.filter_by(graph_id=self.graph_id).filter(
+                Edge.parent_id.in_(stale_node_ids)
+            ).delete(synchronize_session=False)
+            Edge.query.filter_by(graph_id=self.graph_id).filter(
+                Edge.child_id.in_(stale_node_ids)
+            ).delete(synchronize_session=False)
+            Node.query.filter_by(graph_id=self.graph_id).filter(
+                Node.id.in_(stale_node_ids)
+            ).delete(synchronize_session=False)
 
         for edge in self.graph.edges(data=True):
-            parent_id, child_id, edge_data = edge
-            if (parent_id, child_id) in to_remove_edges:
+            source_id, target_id, edge_data = edge
+            if (source_id, target_id) in to_remove_edges:
                 continue
+            parent_id = node_ids[source_id]
+            child_id = node_ids[target_id]
 
-            edge_record = Edge.query.filter_by(parent_id=parent_id, child_id=child_id).first()
+            edge_record = Edge.query.filter_by(
+                graph_id=self.graph_id, parent_id=parent_id, child_id=child_id
+            ).first()
             if edge_record:
                 for k, v in edge_data.items():
                     if hasattr(edge_record, k):
@@ -80,13 +171,11 @@ class NetworkxParser:
 
 class NetworkxParserManager:
     def __init__(self, task, n_graphs):
-        graph = Graph.query.order_by(Graph.id.desc()).first()
-        if not graph:
-            graph = Graph(task=task)
-            db.session.add(graph)
-            db.session.commit()
+        graph = Graph(task=task)
+        db.session.add(graph)
+        db.session.commit()
 
-        self.graph_id = graph.id+1
+        self.graph_id = graph.id
         self.best = None
         self.parsers = []
         for _ in range(n_graphs):
@@ -101,11 +190,19 @@ class NetworkxParserManager:
     def dump_best(self):
         graphs_with_edges = [copy.deepcopy(parser.graph) for parser in self.parsers if parser.graph.edges()]
         if not graphs_with_edges:
-            return  # No graphs with edges to process
-        bst = crossing_over_and_selection(*graphs_with_edges)
+            graphs_with_nodes = [copy.deepcopy(parser.graph) for parser in self.parsers if parser.graph.nodes()]
+            if not graphs_with_nodes:
+                return self.parsers[0].graph
+            bst = graphs_with_nodes[0]
+        elif len(graphs_with_edges) == 1:
+            bst = graphs_with_edges[0]
+        else:
+            bst = crossing_over_and_selection(*graphs_with_edges)
         self.best = NetworkxParser(self.graph_id)
         self.best.graph = bst
-        self.best.dump()  # Persist the best graph to graph_id=1 only
+        self.best.dump()
+        self.best.load()
+        for parser in self.parsers:
+            parser.graph = copy.deepcopy(self.best.graph)
 
-        print(bst)
-        return bst
+        return self.best.graph

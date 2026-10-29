@@ -70,7 +70,7 @@ class NetworkxParser:
                     if hasattr(edge_record, k):
                         setattr(edge_record, k, v)
             else:
-                valid_keys = {'relation', 'penalty', 'desc'}
+                valid_keys = {'relation', 'penalty', 'desc', 'lean'}
                 filtered_data = {k: v for k, v in edge_data.items() if k in valid_keys}
                 new_edge = Edge(parent_id=parent_id, child_id=child_id, graph_id=self.graph_id, **filtered_data)
                 db.session.add(new_edge)       

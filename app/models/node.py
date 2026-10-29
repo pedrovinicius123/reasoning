@@ -12,6 +12,7 @@ class Node(db.Model):
     child_edges = db.relationship(
         "Edge", foreign_keys="Edge.parent_id", back_populates="parent"
     )
+
     parent_edges = db.relationship(
         "Edge", foreign_keys="Edge.child_id", back_populates="child"
     )

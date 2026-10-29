@@ -1,5 +1,8 @@
 __pycache__
 .venv
 .env
+tests
+route_check.py
+import_check.py
 instance
 test.py

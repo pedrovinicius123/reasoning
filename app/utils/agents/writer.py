@@ -7,6 +7,7 @@ class WriterAgent(Agent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.model = kwargs.get("model", Config.WRITER_MODEL)
+        self.essay = ""
 
     def interact(self, graph, on_chunk=None):
         prompt = f"""You are the Writer for a mathematical reasoning system.
@@ -14,8 +15,12 @@ Explain the task using only claims and connections present in the graph below.
 Distinguish verified facts from unresolved questions. Do not invent proofs or conclusions.
 Write concise Markdown. Put inline mathematics in $...$ and displayed equations in $$...$$.
 If the graph has no verified connections, say that there is not enough verified evidence.
+Continue the existing essay without repeating it. Preserve its style and notation.
 
 Task: {self.task}
+
+Existing essay:
+{self.essay or "No previous sections."}
 
 {self.prompt_graph(graph)}
 """

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writer Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/writer.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Writer Agent</h1>
+        <div class="task-section">
+            <h2>Task:</h2>
+            <p>{{ graph.task }}</p>
+        </div>
+        <div id="essay-container">
+            {{ graph.final_essay | safe }}
+        </div>
+        <button id="generate-btn">Continue Writing</button>
+    </div>
+    <div style="display: none" id="graph-id">{{ graph.id }}</div>
+    <script src="{{ url_for('static', filename='js/writer.js') }}"></script>
+</body>
+</html>

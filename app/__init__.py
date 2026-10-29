@@ -27,12 +27,12 @@ def create_app():
     
     @app.errorhandler(ValidationError)
     def validation_error(err):
-        return error_response(err, 400)
+        return error_response(err, 400), 400
     
     @app.errorhandler(500)
     def internal_error(err):
         return error_response(err, 500)
-    
+
     # Adding blueprints 
     app.register_blueprint(bp_nodes)
     app.register_blueprint(bp_agents)

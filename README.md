@@ -39,3 +39,8 @@ For this project, the designed routes and specific request methods are:
 *  /nodes/graph [PATCH, GET] => PATCH for adding edges, GET for retrieve all
 *  /nodes [POST, GET] => POST to add a node and GET to retrieve all
 *  /nodes/<int:id> [GET] => To retrieve a specific node
+
+## UPDATE - oct. 28, 2026 - About Axiom's AXLE
+
+I'm using AXLE cloud Lean engine [@xin2026axle] to improve the verifiability of each node connection and to maximize the efficiency by removing the critical agent (once the Lean Engine will do all the hard work to verify the proof)
+

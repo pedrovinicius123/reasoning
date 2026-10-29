@@ -9,6 +9,7 @@ def start_creative_generation():
     return interact_with_graph()
 
 @bp_agents.route("/reasoning", methods=["POST"])
-def reasoning():
+async def reasoning():
     with current_app.app_context():
-        return start_interact_with_graph_thread()
+        response = await start_interact_with_graph_thread()
+        return response

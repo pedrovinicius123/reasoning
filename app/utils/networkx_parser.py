@@ -54,9 +54,8 @@ class NetworkxParser:
                     setattr(node, k, v)
             else:
                 # Filter to valid Node attributes
-                valid_keys = {'graph_id', 'label', 'desc', 'is_primary'}
+                valid_keys = {'graph_id', 'label', 'desc', 'is_primary', 'lean_code'}
                 filtered_data = {k: v for k, v in node_data.items() if k in valid_keys}
-                print("FILTERED ", filtered_data)
                 node = Node(**filtered_data)
                 db.session.add(node)
 
@@ -95,6 +94,9 @@ class NetworkxParserManager:
             self.parsers.append(parser)
             print(self.parsers, graph)
         self.best = self.parsers[-1]
+    
+    def set_parser_graph(self, index:int, graph):
+        self.parsers[index].graph = graph
 
     def dump_best(self):
         graphs_with_edges = [copy.deepcopy(parser.graph) for parser in self.parsers if parser.graph.edges()]
@@ -104,4 +106,6 @@ class NetworkxParserManager:
         self.best = NetworkxParser(self.graph_id)
         self.best.graph = bst
         self.best.dump()  # Persist the best graph to graph_id=1 only
+
+        print(bst)
         return bst

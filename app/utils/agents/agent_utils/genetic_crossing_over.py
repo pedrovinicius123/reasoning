@@ -1,5 +1,6 @@
 from itertools import combinations
 from networkx import DiGraph
+import time # for debugging
 
 def edges_mean(graph):
     if not graph.edges():
@@ -34,4 +35,6 @@ def crossing_over_and_selection(*graphs, threshold=.1):
         new_gs.append(g)
 
     best_g = max(new_gs, key=edges_mean)
+    print(best_g)
+    time.sleep(10)
     return best_g                        

@@ -238,7 +238,7 @@ def _append_essay(graph, graph_network):
     writer = WriterAgent(task=graph.task)
     writer.essay = graph.final_essay or ""
     section = writer.interact(graph_network)
-    graph.final_essay = "\n\n".join(part for part in (graph.final_essay, section) if part)
+    graph.final_essay += "\n\n".join(part for part in (graph.final_essay, section) if part)
     db.session.commit()
     return graph.final_essay
 

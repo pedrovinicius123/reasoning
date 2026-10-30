@@ -247,6 +247,7 @@ Before adding a proposition, compare its label with existing nodes and reuse the
 
 ### Mathematical rigor
 - Use ONLY well-established theorems and lemmas. No conjectures.
+- Do not state implications or equivalencies on the nodes, but in the connections 
 - For each connection, state the mathematical relation (implication: `uni`, or equivalence: `bi`).
 - Explain how the new node affects the existing node and vice versa.
 
@@ -313,6 +314,7 @@ Return **ONLY** a JSON object with the following shape, with **no text outside t
 
 
 ### Past runtime errors
+Evitate this errors, by fixing your Lean 4 code in order to avoid those failures
 
 {self.past_errors}
 

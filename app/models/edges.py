@@ -14,7 +14,7 @@ class Edge(db.Model):
     penalty = db.Column(db.Float, nullable=False)
     relation = db.Column(db.String(100), nullable=False)
     desc = db.Column(db.Text, nullable=True)
-    lean = db.Column(db.Text, nullable=False)
+    lean = db.Column(db.Text, nullable=True)
 
     # Relacionamentos para acessar os nós a partir da Edge
 
